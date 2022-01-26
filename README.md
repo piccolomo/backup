@@ -1,4 +1,4 @@
-# backup
+# Simple Backup Script For Phyton
 
 It is a quite simple, but effective, backup script for python3.
 
@@ -12,4 +12,4 @@ The scripts create a folder, with today's name, in the destination folder and ba
 
 At the end it check whatever there are any duplicates files in `destination` and removes them, to free space, if requested.
 
-
+It also asks you whatever you want to remove all empty folders in destination.
