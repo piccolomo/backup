@@ -3,7 +3,7 @@
 It is a quite simple, but effective, backup script for python3.
 
 Just run:
-```python
+```console
 python3 backup.py source destination
 ```
 where `source` is the folder to backup and `destination` the folder to backup into.
