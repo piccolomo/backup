@@ -10,6 +10,6 @@ where `source` is the folder to backup and `destination` the folder to backup in
 
 The scripts create a folder, with today's name, in the destination folder and backups all files from source in it. 
 
-At the end it check whatever there are any duplicates files in `destination` and removes them, to free space, if requested.
+At the end it check whatever there are any duplicates files in `destination` and removes them, to free space, if requested, while leaving the most recent files undeleted.
 
 It also asks you whatever you want to remove all empty folders in `destination`.
