@@ -1,8 +1,6 @@
 # Simple Backup Script For Phyton
 
 It is a quite simple, but effective, backup script for python3.
-
-Just run:
 ```console
 python3 backup.py source destination
 ```
