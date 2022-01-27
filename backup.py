@@ -125,10 +125,13 @@ def delete_empty_folders(folder, log = False):
     deleted = False
     for fol in folders(folder):
         if len(all_files(fol)) + len(all_folders(fol)) == 0:
-            delete_folder(fol, log)
+            delete_folder(fol)
+            print('empty folder removed:', folder)
             deleted = True
         else:
             deleted = delete_empty_folders(fol, log)
+    if deleted:
+        delete_empty_folders(folder, log)
     if deleted and log:
         print("all empty folders removed from:", folder)
     return deleted
@@ -292,46 +295,35 @@ class backup():
         print()
         print(pad_string("number of files to copy", p), self.source_len)
         print(pad_string("total size to copy", p), show_size(self.source_size))
-
+        print()
+        
         self.check_space()
         
-        if not loop_input("proceed?"):
-            return 0
+        if loop_input("proceed coping?"):
+            self.get_backup()
+            delete_folder(self.backup_folder, True)
+
+            self.do_backup()
 
         print()
-        self.get_backup()
-        delete_folder(self.backup_folder, True)
+        if loop_input("search for duplicate files in destination?"):
+            self.get_destin()
+            self.get_destin_md5()
+            self.get_duplicates()
+            self.get_duplicates_to_delete()
 
-        self.do_backup()
-
-        print()
-        if not loop_input("search for duplicate files in destination?"):
-            return 0
-        self.get_destin()
-        self.get_destin_md5()
-        self.get_duplicates()
-        self.get_duplicates_to_delete()
-
-        if self.duplicates_len == 0:
-            print("no duplicates to delete")
-            return 0
-        print(str(self.duplicates_len), "duplicates found")
-        if not loop_input("do you want to view them?"):
-            return 0
-
-        self.view_duplicates()
-
-        if self.duplicates_len == 0:
-            return 0
-        if not loop_input("\nremoved the red labeled permanently?"):
-            return 0
-        self.delete_duplicates()
+            if self.duplicates_len == 0:
+                print("no duplicates to delete")
+            else:
+                print(str(self.duplicates_len), "duplicates found")
+                if loop_input("do you want to view them?"):
+                    self.view_duplicates()
+                    if loop_input("\nremoved the red labeled permanently?"):
+                        self.delete_duplicates()
 
         print()
-        if not loop_input("remove empty folders in destination?"):
-            return 0
-        delete_empty_folders(self.destin, True)
-
+        if loop_input("remove empty folders in destination?"):
+            delete_empty_folders(self.destin, True)
         
     def get_source(self):
         if self.source_acquired == False:
@@ -415,7 +407,7 @@ class backup():
         for s in range(len(self.destin_sizes)):
             progress.update(self.destin_sizes[s])
             progress.show()
-            self.destin_md5.append(md5(self.destin_files[s]))
+            self.destin_md5.append(md5(self.destin_files[s], True))
         progress.close()
         
     def get_duplicates(self):
