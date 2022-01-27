@@ -280,8 +280,9 @@ class backup():
         is_folder(self.source)
         is_folder(self.destin)
         p = 12
-        print(pad_string("Source",      11), self.source)
-        print(pad_string("Destination", 11), self.destin)
+        
+        print(pad_string("source",      11), self.source)
+        print(pad_string("destination", 11), self.destin)
 
         print()
         self.get_source()
@@ -291,22 +292,35 @@ class backup():
             print("nothing to backup")
             return 0
         
-        p = 24
         print()
+        p = 24
         print(pad_string("number of files to copy", p), self.source_len)
         print(pad_string("total size to copy", p), show_size(self.source_size))
         print()
         
-        self.check_space()
-        
-        if loop_input("proceed coping?"):
+        if self.source_size < free_space(self.destin):
+            space = True
+            print("there is enough space in destination")
+        else:
+            space = False
+            print("not enough space to copy: wait ...")
+            self.get_delatable()
+            print("you could delete these folders in destination: ")
+            for n in range(len(self.delatable)):
+                print("•",file_basename(self.delatable[n]))
+            if loop_input("delete? "):
+                for fol in self.delatable:
+                    delete_folder(fol, True)
+                space = True
+                self.destin_acquired = False
+
+        if space and loop_input("proceed coping? "):
             self.get_backup()
             delete_folder(self.backup_folder, True)
-
             self.do_backup()
 
         print()
-        if loop_input("search for duplicate files in destination?"):
+        if loop_input("search for duplicate files in destination? "):
             self.get_destin()
             self.get_destin_md5()
             self.get_duplicates()
@@ -315,14 +329,13 @@ class backup():
             if self.duplicates_len == 0:
                 print("no duplicates to delete")
             else:
-                print(str(self.duplicates_len), "duplicates found")
-                if loop_input("do you want to view them?"):
+                if loop_input(str(self.duplicates_len) + " duplicates found: do you want to view them? "):
                     self.view_duplicates()
-                    if loop_input("\nremoved the red labeled permanently?"):
-                        self.delete_duplicates()
+                if loop_input("removed the red colored files permanently? "):
+                    self.delete_duplicates()
 
         print()
-        if loop_input("remove empty folders in destination?"):
+        if loop_input("remove empty folders in destination? "):
             delete_empty_folders(self.destin, True)
         
     def get_source(self):
@@ -350,34 +363,14 @@ class backup():
         else:
             print("destination files already acquired")
 
-    def check_space(self):
-        if self.source_size < free_space(self.destin):
-            print("there is enough space in destination")
-            return 0
-        else:
-            print("not enough space to copy")
-            self.make_space()
-
-    def make_space(self):
-        print("searching for folders that could be removed ...")
+    def get_delatable(self):
         to_delete = []
         for n in range(len(self.destin_folders)):
             to_delete = self.destin_folders[0 : n + 1]
             partial_size = self.destin_folders_sizes[0 : n + 1]
             if sum(partial_size) + self.destin_free > self.source_size:
                 break
-        if len(to_delete) == 0:
-            print("no folders to delete")
-            return 0
-        print("you could delete these folders: ")
-        for n in range(len(to_delete)):
-            print("•",file_basename(to_delete[n]))
-        if not loop_input("delete? "):
-            return 0
-        else:
-            for fol in to_delete:
-                delete_folder(fol, True)
-        self.destin_acquired = False
+        self.delatable = to_delete
 
     def get_backup(self):
         if self.backup_acquired == False:
@@ -391,7 +384,7 @@ class backup():
             print("backup files already acquired")
 
     def do_backup(self):
-        print("copying files ...")
+        print("copying ...")
         progress = progress_indicator(self.source_size)
         for s in range(len(self.source_sizes)):
             file_copy(self.source_files[s], self.backup_files[s])
@@ -417,9 +410,10 @@ class backup():
         for s in range(len(self.destin_files)):
             progress.update(self.destin_sizes[s])
             progress.show()
-            if self.destin_files[s] in flat(self.duplicates):
+            previous_duplicates = flat(self.duplicates)
+            if self.destin_files[s] in previous_duplicates:
                 continue
-            current_duplicates = [self.destin_files[a] for a in range(self.destin_len) if self.destin_md5[a] == self.destin_md5[s]]
+            current_duplicates = [self.destin_files[a] for a in range(self.destin_len) if a != s and self.destin_md5[a] == self.destin_md5[s]]
             if len(current_duplicates) > 1:
                 self.duplicates.append(current_duplicates)
         progress.close()
@@ -453,8 +447,9 @@ class backup():
                 line += file_name + size + fol + time + '\n'
             res.append(line)
             
-        print("\npress enter to continue or q to exit")
+        print("[press enter to continue or q to exit]")
         title = pad_string("file", length) + pad_string("size", length) + pad_string("folder", length) + pad_string("modification time", length, 1)
+        print()
         print(title)
         for i in range(len(res)):
             print(res[i], end = "")
@@ -470,7 +465,7 @@ class backup():
             progress.update(1)
             progress.show()
         progress.close()
-        print("duplicates removed")
+        print(str(self.duplicates_len) + " duplicates removed")
 
 if __name__== "__main__":
     args = sys.argv
