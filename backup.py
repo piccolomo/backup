@@ -129,7 +129,7 @@ def delete_empty_folders(folder, log = False):
             print('empty folder removed:', folder)
             deleted = True
         else:
-            deleted = delete_empty_folders(fol, log)
+            deleted += delete_empty_folders(fol, log)
     if deleted:
         delete_empty_folders(folder, log)
     if deleted and log:
@@ -336,7 +336,9 @@ class backup():
 
         print()
         if loop_input("remove empty folders in destination? "):
-            delete_empty_folders(self.destin, True)
+            deleted = delete_empty_folders(self.destin, True)
+            if not deleted:
+                print("no empty folders to remove")
         
     def get_source(self):
         if self.source_acquired == False:
