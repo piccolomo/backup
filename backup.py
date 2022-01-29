@@ -124,16 +124,13 @@ def file_copy(source, destination, log = False):
 def delete_empty_folders(folder, log = False):
     deleted = False
     for fol in folders(folder):
-        if len(all_files(fol)) + len(all_folders(fol)) == 0:
+        if folder_size(fol) == 0:
             delete_folder(fol)
-            print('empty folder removed:', folder)
             deleted = True
+            if log:
+                print('empty folder removed:', fol)
         else:
             deleted += delete_empty_folders(fol, log)
-    if deleted:
-        delete_empty_folders(folder, log)
-    if deleted and log:
-        print("all empty folders removed from:", folder)
     return deleted
 
 
@@ -286,7 +283,7 @@ class backup():
 
         print()
         self.get_source()
-        self.get_destin()
+        #self.get_destin() # no need to acquire destination
 
         if self.source_len == 0:
             print("nothing to backup")
@@ -339,8 +336,10 @@ class backup():
         if loop_input("remove empty folders in destination? "):
             deleted = delete_empty_folders(self.destin, True)
             if not deleted:
-                print("no empty folders to remove")
-        
+                print("no empty folders to remove in destination")
+            else:
+                print("all empty folders removed in destination")
+ 
     def get_source(self):
         if self.source_acquired == False:
             self.source_files = all_files(self.source)
