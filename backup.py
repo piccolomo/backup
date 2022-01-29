@@ -318,6 +318,7 @@ class backup():
             self.get_backup()
             delete_folder(self.backup_folder, True)
             self.do_backup()
+            self.destin_acquired = False
 
         print()
         if loop_input("search for duplicate files in destination? "):
